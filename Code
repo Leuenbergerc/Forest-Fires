@@ -1,0 +1,123 @@
+# each row corresponds to the characteristics of the fire itelf
+forestfires %>% pull(month) %>% unique
+
+forestfires %>% pull(day)%>% unique
+
+month_order <- c("jan", "feb", "mar",
+                 "apr", "may", "jun",
+                 "jul", "aug", "sep",
+                 "oct", "nov", "dec")
+
+dow_order <- c("sun", "mon", "tue", "wed", "thu", "fri", "sat")
+
+forestfires <- forestfires %>% 
+  mutate(
+    month = factor(month, levels = month_order),
+    day = factor(day, levels = dow_order)
+  )
+
+fires_month <- forestfires %>%
+  group_by(month) %>%
+  summarize(total_fires = n())
+
+#1 jan       2
+#2 feb      20
+#3 mar      54
+#4 apr       9
+#5 may       2
+#6 jun      17
+#7 jul      32
+#8 aug     184
+#9 sep     172
+#10 oct      15
+#11 nov       1
+#12 dec       9
+
+fires_day <- forestfires %>%
+  group_by(day) %>%
+  summarize(total_fires = n())
+#1 sun      95
+#2 mon      74
+#3 tue      64
+#4 wed      54
+#5 thu      61
+#6 fri      85
+#7 sat      84
+
+fires_month %>% 
+  ggplot(aes(x = month, y = total_fires)) +
+  geom_col() +
+  labs(
+    title = "Number of forest fires in data by month",
+    y = "Fire count",
+    x = "Month"
+  )
+
+fires_day %>% 
+  ggplot(aes(x = day, y = total_fires)) +
+  geom_col() +
+  labs(
+    title = "Number of forest fires in data by day",
+    y = "Fire count",
+    x = "day"
+  )
+
+#Sunday has the highest number of forest fire followed by friday.
+#August and September have extremely elevated number of fires compared to any other month.
+
+
+forest_fires_long <- forestfires %>% 
+  pivot_longer(
+    cols = c("FFMC", "DMC", "DC", 
+             "ISI", "temp", "RH", 
+             "wind", "rain"),
+    names_to = "data_col",
+    values_to = "value"
+  )
+
+forest_fires_long %>% 
+  ggplot(aes(x = month, y = value)) +
+  geom_boxplot() +
+  facet_wrap(vars(data_col), scale = "free_y") +
+  labs(
+    title = "Variable changes over month",
+    x = "Month",
+    y = "Variable value"
+  )
+
+
+#August and September are the dryest month but surprisingly August sees a lot of rain compared to other months.
+
+forest_fires_long %>% 
+  ggplot(aes(x = month, y = area)) +
+  geom_point() +
+  facet_wrap(vars(data_col), scale = "free_x") +
+  labs(
+    title = "relationships between other varibles and area burned",
+    x = "value of column",
+    y = "area burned (Hectares)"
+  )
+#We see here September has the most hectares burnt with over 1000, followed by August and then July
+
+forest_fires_long %>% 
+  ggplot(aes(x = value, y = area)) +
+  geom_point() +
+  facet_wrap(vars(data_col), scale = "free_x") +
+  labs(
+    title = "relationships between other varibles and area burned",
+    x = "value of column",
+    y = "area burned (Hectares)"
+  )
+
+
+forest_fires_long %>% 
+  filter(area < 300) %>% 
+  ggplot(aes(x = value, y = area)) +
+  geom_point() +
+  facet_wrap(vars(data_col), scales = "free_x") +
+  labs(
+    title = "Relationships between other variables and area burned (area < 300)",
+    x = "Value of column",
+    y = "Area burned (hectare)"
+  )
+
